@@ -1,0 +1,123 @@
+
+#include <Arduino.h>
+
+// Semaphore handles
+SemaphoreHandle_t binarySemaphore;
+SemaphoreHandle_t countingSemaphore;
+SemaphoreHandle_t mutex;
+
+// Shared variable
+int sharedData = 0;
+
+// Task 1: Binary Semaphore
+void Task1(void *pvParameters)
+{
+  while (1)
+  {
+    Serial.println("Task 1: Waiting for Binary Semaphore");
+
+    if (xSemaphoreTake(binarySemaphore, portMAX_DELAY))
+    {
+      Serial.println("Task 1: Binary Semaphore Acquired");
+      vTaskDelay(pdMS_TO_TICKS(1000));
+
+      Serial.println("Task 1: Binary Semaphore Released");
+      xSemaphoreGive(binarySemaphore);
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(500));
+  }
+}
+
+// Task 2: Counting Semaphore
+void Task2(void *pvParameters)
+{
+  while (1)
+  {
+    if (xSemaphoreTake(countingSemaphore, portMAX_DELAY))
+    {
+      Serial.println("Task 2: Counting Semaphore Acquired");
+
+      vTaskDelay(pdMS_TO_TICKS(1000));
+
+      Serial.println("Task 2: Counting Semaphore Released");
+      xSemaphoreGive(countingSemaphore);
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(500));
+  }
+}
+
+// Task 3: Mutex for Shared Data
+void Task3(void *pvParameters)
+{
+  while (1)
+  {
+    if (xSemaphoreTake(mutex, portMAX_DELAY))
+    {
+      sharedData++;
+
+      Serial.print("Task 3: Shared Data = ");
+      Serial.println(sharedData);
+
+      vTaskDelay(pdMS_TO_TICKS(500));
+
+      xSemaphoreGive(mutex);
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(500));
+  }
+}
+
+// Task 4: Access Shared Data
+void Task4(void *pvParameters)
+{
+  while (1)
+  {
+    if (xSemaphoreTake(mutex, portMAX_DELAY))
+    {
+      Serial.print("Task 4: Shared Data = ");
+      Serial.println(sharedData);
+
+      xSemaphoreGive(mutex);
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(1000));
+  }
+}
+
+void setup()
+{
+  Serial.begin(115200);
+
+  // Create semaphores
+  binarySemaphore = xSemaphoreCreateBinary();
+  countingSemaphore = xSemaphoreCreateCounting(3, 3);
+  mutex = xSemaphoreCreateMutex();
+
+  // Initialize binary semaphore
+  xSemaphoreGive(binarySemaphore);
+
+  if (binarySemaphore == NULL ||
+      countingSemaphore == NULL ||
+      mutex == NULL)
+  {
+    Serial.println("Semaphore Creation Failed!");
+    while (1);
+  }
+
+  // Create FreeRTOS tasks
+  xTaskCreate(Task1, "BinaryTask", 2048, NULL, 1, NULL);
+  xTaskCreate(Task2, "CountingTask", 2048, NULL, 1, NULL);
+  xTaskCreate(Task3, "MutexTask1", 2048, NULL, 1, NULL);
+  xTaskCreate(Task4, "MutexTask2", 2048, NULL, 1, NULL);
+
+  Serial.println("FreeRTOS Synchronization Started");
+}
+
+void loop()
+{
+  // FreeRTOS tasks handle the operations
+  vTaskDelay(pdMS_TO_TICKS(1000));
+}
+
