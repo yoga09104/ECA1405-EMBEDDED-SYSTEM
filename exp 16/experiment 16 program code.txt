@@ -1,0 +1,192 @@
+
+#include <Arduino.h>
+
+#define USE_MUTEX 1
+#define RUN_CORE 1
+
+SemaphoreHandle_t resourceLock;
+
+uint32_t tStart;
+
+#define NOW() (millis() - tStart)
+
+// CPU Busy Work
+void busyWork(uint32_t ms)
+{
+  uint32_t start = millis();
+
+  while (millis() - start < ms)
+  {
+    // CPU remains busy
+  }
+}
+
+// LOW Priority Task (P1)
+void LowTask(void *pv)
+{
+  vTaskDelay(pdMS_TO_TICKS(100));
+
+  xSemaphoreTake(resourceLock, portMAX_DELAY);
+
+  Serial.printf(
+    "[%4lu ms] LOW -> resource LOCKED (priority %u)\n",
+    (unsigned long)NOW(),
+    (unsigned)uxTaskPriorityGet(NULL)
+  );
+
+  for (int i = 1; i <= 10; i++)
+  {
+    busyWork(100);
+
+    Serial.printf(
+      "[%4lu ms] LOW -> working %d/10, current priority %u\n",
+      (unsigned long)NOW(),
+      i,
+      (unsigned)uxTaskPriorityGet(NULL)
+    );
+  }
+
+  xSemaphoreGive(resourceLock);
+
+  Serial.printf(
+    "[%4lu ms] LOW -> resource RELEASED\n",
+    (unsigned long)NOW()
+  );
+
+  vTaskDelete(NULL);
+}
+
+// MEDIUM Priority Task (P2)
+void MediumTask(void *pv)
+{
+  vTaskDelay(pdMS_TO_TICKS(400));
+
+  Serial.printf(
+    "[%4lu ms] MEDIUM -> starts CPU work\n",
+    (unsigned long)NOW()
+  );
+
+  for (int i = 1; i <= 4; i++)
+  {
+    busyWork(500);
+
+    Serial.printf(
+      "[%4lu ms] MEDIUM -> working %d/4\n",
+      (unsigned long)NOW(),
+      i
+    );
+  }
+
+  Serial.printf(
+    "[%4lu ms] MEDIUM -> finished\n",
+    (unsigned long)NOW()
+  );
+
+  vTaskDelete(NULL);
+}
+
+// HIGH Priority Task (P3)
+void HighTask(void *pv)
+{
+  vTaskDelay(pdMS_TO_TICKS(300));
+
+  Serial.printf(
+    "[%4lu ms] HIGH -> requests the resource\n",
+    (unsigned long)NOW()
+  );
+
+  uint32_t t0 = millis();
+
+  xSemaphoreTake(resourceLock, portMAX_DELAY);
+
+  uint32_t waited = millis() - t0;
+
+  Serial.printf(
+    "[%4lu ms] HIGH -> resource LOCKED after waiting %lu ms\n",
+    (unsigned long)NOW(),
+    (unsigned long)waited
+  );
+
+  xSemaphoreGive(resourceLock);
+
+  Serial.println("==============================================");
+
+  Serial.printf(
+    "RESULT: HIGH waited %lu ms (%s)\n",
+    (unsigned long)waited,
+    USE_MUTEX ? "mutex, priority inheritance"
+              : "binary semaphore, NO inheritance"
+  );
+
+  Serial.println("==============================================");
+
+  vTaskDelete(NULL);
+}
+
+void setup()
+{
+  Serial.begin(115200);
+
+  delay(1000);
+
+  Serial.println("==============================================");
+  Serial.printf(" PRIORITY INVERSION TEST (USE_MUTEX = %d)\n",
+                USE_MUTEX);
+  Serial.println(" LOW = P1, MEDIUM = P2, HIGH = P3");
+  Serial.println("==============================================");
+
+  // Create Mutex or Binary Semaphore
+  if (USE_MUTEX == 1)
+  {
+    resourceLock = xSemaphoreCreateMutex();
+  }
+  else
+  {
+    resourceLock = xSemaphoreCreateBinary();
+
+    if (resourceLock != NULL)
+    {
+      xSemaphoreGive(resourceLock);
+    }
+  }
+
+  if (resourceLock == NULL)
+  {
+    Serial.println("Semaphore Creation Failed!");
+    while (1)
+    {
+      delay(1000);
+    }
+  }
+
+  tStart = millis();
+
+  // Create LOW priority task
+  BaseType_t t1 = xTaskCreatePinnedToCore(
+    LowTask, "Low", 4096, NULL, 1, NULL, RUN_CORE
+  );
+
+  // Create MEDIUM priority task
+  BaseType_t t2 = xTaskCreatePinnedToCore(
+    MediumTask, "Medium", 4096, NULL, 2, NULL, RUN_CORE
+  );
+
+  // Create HIGH priority task
+  BaseType_t t3 = xTaskCreatePinnedToCore(
+    HighTask, "High", 4096, NULL, 3, NULL, RUN_CORE
+  );
+
+  if (t1 != pdPASS || t2 != pdPASS || t3 != pdPASS)
+  {
+    Serial.println("Task Creation Failed!");
+    while (1)
+    {
+      delay(1000);
+    }
+  }
+}
+
+void loop()
+{
+  vTaskDelay(pdMS_TO_TICKS(1000));
+}

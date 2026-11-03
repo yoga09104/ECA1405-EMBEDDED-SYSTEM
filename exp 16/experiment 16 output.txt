@@ -1,0 +1,27 @@
+==============================================
+ PRIORITY INVERSION TEST (USE_MUTEX = 1)
+ LOW = P1, MEDIUM = P2, HIGH = P3
+==============================================
+[ 101 ms] LOW -> resource LOCKED (priority 1)
+[ 201 ms] LOW -> working 1/10, current priority 1
+[ 301 ms] LOW -> working 2/10, current priority 1
+[ 301 ms] HIGH -> requests the resource
+[ 401 ms] LOW -> working 3/10, current priority 3
+[ 501 ms] LOW -> working 4/10, current priority 3
+[ 601 ms] LOW -> working 5/10, current priority 3
+[ 701 ms] LOW -> working 6/10, current priority 3
+[ 801 ms] LOW -> working 7/10, current priority 3
+[ 901 ms] LOW -> working 8/10, current priority 3
+[1001 ms] LOW -> working 9/10, current priority 3
+[1101 ms] LOW -> working 10/10, current priority 3
+[1101 ms] HIGH -> resource LOCKED after waiting 798 ms
+==============================================
+RESULT: HIGH waited 798 ms (mutex, priority inheritance)
+==============================================
+[1101 ms] MEDIUM -> starts CPU work
+[1624 ms] MEDIUM -> working 1/4
+[2124 ms] MEDIUM -> working 2/4
+[2624 ms] MEDIUM -> working 3/4
+[3124 ms] MEDIUM -> working 4/4
+[3124 ms] MEDIUM -> finished
+[1102 ms] LOW -> resource RELEASED
