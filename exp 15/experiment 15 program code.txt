@@ -1,0 +1,95 @@
+
+#include <Arduino.h>
+
+// GPIO pin for external interrupt
+#define INTERRUPT_PIN 4
+
+// Task Handle
+TaskHandle_t processingTaskHandle = NULL;
+
+// Semaphore Handle
+SemaphoreHandle_t interruptSemaphore;
+
+// Counter
+volatile int interruptCount = 0;
+
+// Interrupt Service Routine
+void IRAM_ATTR ISR_Handler()
+{
+  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+  interruptCount++;
+
+  // Notify the task from ISR
+  xSemaphoreGiveFromISR(
+    interruptSemaphore,
+    &xHigherPriorityTaskWoken
+  );
+
+  // Request immediate task scheduling if needed
+  if (xHigherPriorityTaskWoken == pdTRUE)
+  {
+    portYIELD_FROM_ISR();
+  }
+}
+
+// Deferred Processing Task
+void ProcessingTask(void *pvParameters)
+{
+  while (1)
+  {
+    // Wait for interrupt notification
+    if (xSemaphoreTake(interruptSemaphore, portMAX_DELAY))
+    {
+      Serial.println("Deferred Processing Started");
+
+      Serial.print("Interrupt Count: ");
+      Serial.println(interruptCount);
+
+      vTaskDelay(pdMS_TO_TICKS(500));
+
+      Serial.println("Deferred Processing Completed");
+    }
+  }
+}
+
+void setup()
+{
+  Serial.begin(115200);
+
+  // Configure interrupt pin
+  pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+
+  // Create Binary Semaphore
+  interruptSemaphore = xSemaphoreCreateBinary();
+
+  if (interruptSemaphore == NULL)
+  {
+    Serial.println("Semaphore Creation Failed!");
+    while (1);
+  }
+
+  // Create high priority processing task
+  xTaskCreate(
+    ProcessingTask,
+    "ProcessingTask",
+    2048,
+    NULL,
+    2,
+    &processingTaskHandle
+  );
+
+  // Attach external interrupt
+  attachInterrupt(
+    digitalPinToInterrupt(INTERRUPT_PIN),
+    ISR_Handler,
+    FALLING
+  );
+
+  Serial.println("Interrupt System Started");
+}
+
+void loop()
+{
+  vTaskDelay(pdMS_TO_TICKS(1000));
+}

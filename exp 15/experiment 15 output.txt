@@ -1,0 +1,40 @@
+=================================
+ ISR PRIORITY AND DEFERRED PROCESSING
+=================================
+LOW PRIORITY TASK -> Background processing
+Interrupt configured on GPIO 0.
+Interrupt Task Priority = 3
+Background Task Priority = 1
+Press the BOOT button.
+=================================
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
+LOW PRIORITY TASK -> Background processing
