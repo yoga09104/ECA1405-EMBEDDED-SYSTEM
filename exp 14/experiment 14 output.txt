@@ -1,0 +1,142 @@
+RTOS Timer and Event Groups Started
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+Task 3: Event Group Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+RTOS Timer Expired!
+Task 3: Event Group Received
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+Task 3: Event Group Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+RTOS Timer Expired!
+Task 3: Event Group Received
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+Task 3: Event Group Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+RTOS Timer Expired!
+Task 3: Event Group Received
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+Task 3: Event Group Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+RTOS Timer Expired!
+Task 3: Event Group Received
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+Task 3: Event Group Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+RTOS Timer Expired!
+Task 3: Event Group Received
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+Task 3: Event Group Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+RTOS Timer Expired!
+Task 3: Event Group Received
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+Task 3: Event Group Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+RTOS Timer Expired!
+Task 3: Event Group Received
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+Task 3: Event Group Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+RTOS Timer Expired!
+Task 3: Event Group Received
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+Task 3: Event Group Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+RTOS Timer Expired!
+Task 3: Event Group Received
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+Task 3: Event Group Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+RTOS Timer Expired!
+Task 1: Timer Event Received
+Task 2: Setting Event Bit 1
+RTOS Timer Expired!
+Task 3: Event Group Received
+Task 1: Timer Event Received
+RTOS Timer Expired!

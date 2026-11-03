@@ -1,0 +1,118 @@
+
+#include <Arduino.h>
+
+// Event Group Handle
+EventGroupHandle_t eventGroup;
+
+// Timer Handle
+TimerHandle_t myTimer;
+
+// Event Bits
+#define EVENT_BIT_0 (1 << 0)
+#define EVENT_BIT_1 (1 << 1)
+
+// Timer Callback Function
+void TimerCallback(TimerHandle_t xTimer)
+{
+  Serial.println("RTOS Timer Expired!");
+
+  // Set Event Bit 0
+  xEventGroupSetBits(eventGroup, EVENT_BIT_0);
+}
+
+// Task 1: Timer Event
+void Task1(void *pvParameters)
+{
+  while (1)
+  {
+    EventBits_t bits = xEventGroupWaitBits(
+      eventGroup,
+      EVENT_BIT_0,
+      pdTRUE,
+      pdFALSE,
+      portMAX_DELAY
+    );
+
+    if (bits & EVENT_BIT_0)
+    {
+      Serial.println("Task 1: Timer Event Received");
+    }
+  }
+}
+
+// Task 2: Manual Event
+void Task2(void *pvParameters)
+{
+  while (1)
+  {
+    vTaskDelay(pdMS_TO_TICKS(5000));
+
+    Serial.println("Task 2: Setting Event Bit 1");
+
+    xEventGroupSetBits(eventGroup, EVENT_BIT_1);
+  }
+}
+
+// Task 3: Wait for Event
+void Task3(void *pvParameters)
+{
+  while (1)
+  {
+    EventBits_t bits = xEventGroupWaitBits(
+      eventGroup,
+      EVENT_BIT_1,
+      pdTRUE,
+      pdFALSE,
+      portMAX_DELAY
+    );
+
+    if (bits & EVENT_BIT_1)
+    {
+      Serial.println("Task 3: Event Group Received");
+    }
+  }
+}
+
+void setup()
+{
+  Serial.begin(115200);
+
+  // Create Event Group
+  eventGroup = xEventGroupCreate();
+
+  if (eventGroup == NULL)
+  {
+    Serial.println("Event Group Creation Failed!");
+    while (1);
+  }
+
+  // Create Software Timer (2 seconds)
+  myTimer = xTimerCreate(
+    "MyTimer",
+    pdMS_TO_TICKS(2000),
+    pdTRUE,
+    NULL,
+    TimerCallback
+  );
+
+  if (myTimer == NULL)
+  {
+    Serial.println("Timer Creation Failed!");
+    while (1);
+  }
+
+  // Create FreeRTOS Tasks
+  xTaskCreate(Task1, "TimerTask", 2048, NULL, 1, NULL);
+  xTaskCreate(Task2, "EventTask", 2048, NULL, 1, NULL);
+  xTaskCreate(Task3, "WaitTask", 2048, NULL, 1, NULL);
+
+  // Start Timer
+  xTimerStart(myTimer, 0);
+
+  Serial.println("RTOS Timer and Event Groups Started");
+}
+
+void loop()
+{
+  vTaskDelay(pdMS_TO_TICKS(1000));
+}
