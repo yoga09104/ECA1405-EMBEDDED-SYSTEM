@@ -1,0 +1,255 @@
+
+#include <Arduino.h>
+
+#define BLOCK_SIZE 32
+#define NUM_BLOCKS 4
+
+// Fixed-size memory pool
+static uint8_t pool[NUM_BLOCKS][BLOCK_SIZE];
+static bool used[NUM_BLOCKS] = {false};
+
+// Memory Pool Allocation
+void *poolAlloc()
+{
+  for (int i = 0; i < NUM_BLOCKS; i++)
+  {
+    if (!used[i])
+    {
+      used[i] = true;
+      return pool[i];
+    }
+  }
+
+  return NULL;
+}
+
+// Memory Pool Release
+void poolFree(void *p)
+{
+  for (int i = 0; i < NUM_BLOCKS; i++)
+  {
+    if (p == pool[i])
+    {
+      used[i] = false;
+      return;
+    }
+  }
+}
+
+// Stack Usage Function
+void stackHungry()
+{
+  volatile uint8_t buffer[1500];
+
+  for (int i = 0; i < 1500; i++)
+  {
+    buffer[i] = (uint8_t)i;
+  }
+
+  Serial.printf(
+    "stackHungry(): buffer[1499] = %u\n",
+    buffer[1499]
+  );
+}
+
+// Main Memory Task
+void MemoryTask(void *pv)
+{
+  // PART A: Heap Allocation
+  Serial.println("\n--- PART A: HEAP ALLOCATION ---");
+
+  size_t before = ESP.getFreeHeap();
+
+  int *data = (int *)pvPortMalloc(10 * sizeof(int));
+
+  if (data == NULL)
+  {
+    Serial.println("Allocation FAILED");
+  }
+  else
+  {
+    size_t after = ESP.getFreeHeap();
+
+    Serial.printf("Requested : %u bytes\n",
+                  (unsigned)(10 * sizeof(int)));
+
+    Serial.printf("Heap before : %u bytes\n",
+                  (unsigned)before);
+
+    Serial.printf("Heap after : %u bytes\n",
+                  (unsigned)after);
+
+    Serial.printf("Heap reduction : %u bytes\n",
+                  (unsigned)(before - after));
+
+    vPortFree(data);
+  }
+
+  Serial.printf("Heap after release : %u bytes\n",
+                (unsigned)ESP.getFreeHeap());
+
+  // PART B: Memory Leak Demonstration
+  Serial.println("\n--- PART B: MEMORY LEAK ---");
+
+  void *leak[5] = {NULL};
+  size_t start = ESP.getFreeHeap();
+
+  for (int i = 0; i < 5; i++)
+  {
+    leak[i] = pvPortMalloc(1024);
+
+    if (leak[i] == NULL)
+    {
+      Serial.printf("Allocation %d FAILED\n", i + 1);
+      continue;
+    }
+
+    size_t nowFree = ESP.getFreeHeap();
+
+    Serial.printf(
+      "After leak %d : free heap %u bytes (lost %u)\n",
+      i + 1,
+      (unsigned)nowFree,
+      (unsigned)(start - nowFree)
+    );
+  }
+
+  // Free allocated memory
+  for (int i = 0; i < 5; i++)
+  {
+    if (leak[i] != NULL)
+    {
+      vPortFree(leak[i]);
+    }
+  }
+
+  Serial.printf("After freeing all : %u bytes\n",
+                (unsigned)ESP.getFreeHeap());
+
+  Serial.printf("Lowest free heap : %u bytes\n",
+                (unsigned)ESP.getMinFreeHeap());
+
+  // PART C: Stack High-Water Mark
+  Serial.println("\n--- PART C: STACK HIGH-WATER MARK ---");
+
+  UBaseType_t hwm1 = uxTaskGetStackHighWaterMark(NULL);
+
+  Serial.printf("Before stackHungry() : %u bytes\n",
+                (unsigned)hwm1);
+
+  stackHungry();
+
+  UBaseType_t hwm2 = uxTaskGetStackHighWaterMark(NULL);
+
+  Serial.printf("After stackHungry() : %u bytes\n",
+                (unsigned)hwm2);
+
+  Serial.printf("Peak stack used : approximately %u bytes\n",
+                (unsigned)(4096 - hwm2));
+
+  // PART D: Fixed-size Memory Pool
+  Serial.println("\n--- PART D: MEMORY POOL ---");
+
+  void *blk[NUM_BLOCKS];
+
+  for (int i = 0; i < NUM_BLOCKS; i++)
+  {
+    blk[i] = poolAlloc();
+
+    Serial.printf("Block %d allocated at %p\n",
+                  i + 1, blk[i]);
+  }
+
+  void *extra = poolAlloc();
+
+  if (extra == NULL)
+  {
+    Serial.println("Block 5 : FAILED - pool FULL");
+  }
+
+  poolFree(blk[1]);
+
+  Serial.println("Block 2 released");
+
+  void *again = poolAlloc();
+
+  Serial.printf("New request got %p (%s)\n",
+                again,
+                again == blk[1] ?
+                "same block reused" : "other block");
+
+  for (int i = 0; i < NUM_BLOCKS; i++)
+  {
+    poolFree(blk[i]);
+  }
+
+  Serial.println("All blocks released");
+
+  // PART E: Pool vs Heap Speed Test
+  Serial.println("\n--- PART E: SPEED TEST ---");
+
+  uint32_t t0 = micros();
+
+  for (int i = 0; i < 1000; i++)
+  {
+    void *p = poolAlloc();
+    poolFree(p);
+  }
+
+  uint32_t tPool = micros() - t0;
+
+  t0 = micros();
+
+  for (int i = 0; i < 1000; i++)
+  {
+    void *p = pvPortMalloc(BLOCK_SIZE);
+
+    if (p != NULL)
+    {
+      vPortFree(p);
+    }
+  }
+
+  uint32_t tHeap = micros() - t0;
+
+  Serial.printf("Memory pool : %lu us total\n",
+                (unsigned long)tPool);
+
+  Serial.printf("Heap : %lu us total\n",
+                (unsigned long)tHeap);
+
+  Serial.println("\n--- MEMORY TEST COMPLETE ---");
+
+  vTaskDelete(NULL);
+}
+
+void setup()
+{
+  Serial.begin(115200);
+
+  delay(1000);
+
+  Serial.println("================================");
+  Serial.println(" RTOS MEMORY MANAGEMENT TEST");
+  Serial.println("================================");
+
+  // Create FreeRTOS Task
+  BaseType_t result = xTaskCreate(
+    MemoryTask,
+    "MemoryTask",
+    4096,
+    NULL,
+    1,
+    NULL
+  );
+
+  if (result != pdPASS)
+  {
+    Serial.println("Task Creation Failed!");
+  }
+}
+
+void loop()
+{
+  vTaskDelay(pdMS_TO_TICKS(1000));
+}

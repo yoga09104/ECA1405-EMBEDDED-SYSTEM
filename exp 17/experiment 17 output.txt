@@ -1,0 +1,41 @@
+===============================
+ RTOS MEMORY MANAGEMENT TEST
+================================
+
+--- PART A: HEAP ALLOCATION ---
+Requested : 40 bytes
+Heap before : 326592 bytes
+Heap after : 326536 bytes
+Heap reduction : 56 bytes
+Heap after release : 326592 bytes
+
+--- PART B: MEMORY LEAK ---
+After leak 1 : free heap 325436 bytes (lost 1156)
+After leak 2 : free heap 324280 bytes (lost 2312)
+After leak 3 : free heap 323188 bytes (lost 3404)
+After leak 4 : free heap 322096 bytes (lost 4496)
+After leak 5 : free heap 321004 bytes (lost 5588)
+After freeing all : 326592 bytes
+Lowest free heap : 299412 bytes
+
+--- PART C: STACK HIGH-WATER MARK ---
+Before stackHungry() : 2372 bytes
+stackHungry(): buffer[1499] = 219
+After stackHungry() : 1060 bytes
+Peak stack used : approximately 3036 bytes
+
+--- PART D: MEMORY POOL ---
+Block 1 allocated at 0x3ffc1d3c
+Block 2 allocated at 0x3ffc1d5c
+Block 3 allocated at 0x3ffc1d7c
+Block 4 allocated at 0x3ffc1d9c
+Block 5 : FAILED - pool FULL
+Block 2 released
+New request got 0x3ffc1d5c (same block reused)
+All blocks released
+
+--- PART E: SPEED TEST ---
+Memory pool : 3573 us total
+Heap : 28989 us total
+
+--- MEMORY TEST COMPLETE ---
