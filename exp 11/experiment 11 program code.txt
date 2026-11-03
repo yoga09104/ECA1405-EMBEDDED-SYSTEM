@@ -1,0 +1,131 @@
+#include <Arduino.h>
+
+#define RUN_CORE 1
+
+TaskHandle_t hHigh, hMed, hLow;
+
+volatile uint32_t highCount = 0;
+volatile uint32_t medCount = 0;
+volatile uint32_t lowCount = 0;
+
+const char* stateName(TaskHandle_t t)
+{
+  switch (eTaskGetState(t))
+  {
+    case eRunning:   return "Running";
+    case eReady:     return "Ready";
+    case eBlocked:   return "Blocked";
+    case eSuspended: return "Suspended";
+    default:         return "Deleted";
+  }
+}
+
+// High Priority Task
+void HighTask(void *pv)
+{
+  while (1)
+  {
+    highCount++;
+
+    Serial.printf("HIGH | Priority: %u | Count: %lu\n",
+      (unsigned)uxTaskPriorityGet(NULL),
+      (unsigned long)highCount);
+
+    vTaskDelay(pdMS_TO_TICKS(500));
+  }
+}
+
+// Medium Priority Task
+void MediumTask(void *pv)
+{
+  while (1)
+  {
+    medCount++;
+
+    Serial.printf("MEDIUM | Priority: %u | Count: %lu\n",
+      (unsigned)uxTaskPriorityGet(NULL),
+      (unsigned long)medCount);
+
+    vTaskDelay(pdMS_TO_TICKS(1000));
+  }
+}
+
+// Low Priority Task
+void LowTask(void *pv)
+{
+  while (1)
+  {
+    lowCount++;
+
+    Serial.printf("LOW | Priority: %u | Count: %lu\n",
+      (unsigned)uxTaskPriorityGet(NULL),
+      (unsigned long)lowCount);
+
+    vTaskDelay(pdMS_TO_TICKS(1500));
+  }
+}
+
+// Monitor Task
+void MonitorTask(void *pv)
+{
+  uint32_t t = 0;
+
+  while (1)
+  {
+    vTaskDelay(pdMS_TO_TICKS(3000));
+    t += 3;
+
+    if (t == 12)
+    {
+      vTaskSuspend(hLow);
+      Serial.println(">>> LowTask SUSPENDED");
+    }
+
+    if (t == 18)
+    {
+      vTaskResume(hLow);
+      Serial.println(">>> LowTask RESUMED");
+    }
+
+    Serial.printf(
+      "[MONITOR] Time: %lu s | H/M/L: %lu/%lu/%lu\n",
+      (unsigned long)t,
+      (unsigned long)highCount,
+      (unsigned long)medCount,
+      (unsigned long)lowCount
+    );
+
+    Serial.printf(
+      "States: H:%s M:%s L:%s\n",
+      stateName(hHigh),
+      stateName(hMed),
+      stateName(hLow)
+    );
+  }
+}
+
+void setup()
+{
+  Serial.begin(115200);
+  delay(1000);
+
+  Serial.println("FREE RTOS TASK PRIORITY EXPERIMENT");
+  Serial.println("HIGH = 3, MEDIUM = 2, LOW = 1");
+
+  xTaskCreatePinnedToCore(
+    HighTask, "HighTask", 4096, NULL, 3, &hHigh, RUN_CORE);
+
+  xTaskCreatePinnedToCore(
+    MediumTask, "MediumTask", 4096, NULL, 2, &hMed, RUN_CORE);
+
+  xTaskCreatePinnedToCore(
+    LowTask, "LowTask", 4096, NULL, 1, &hLow, RUN_CORE);
+
+  xTaskCreatePinnedToCore(
+    MonitorTask, "Monitor", 4096, NULL, 4, NULL, RUN_CORE);
+}
+
+void loop()
+{
+  vTaskDelay(pdMS_TO_TICKS(1000));
+}
